@@ -1,4 +1,4 @@
-package persistence
+package vector
 
 import (
 	"context"
@@ -18,17 +18,17 @@ type FaissSearchResponse struct {
 	Labels    []int64
 }
 
-type Client struct {
+type FaissClient struct {
 	dir string
 }
 
-func NewClient() *Client {
-	return &Client{
+func NewFaissClient() *FaissClient {
+	return &FaissClient{
 		dir: "./faiss-index",
 	}
 }
 
-func (r *Client) Index(ctx context.Context, indexName string, id int, embedding embedding.Embedding) error {
+func (r *FaissClient) Index(ctx context.Context, indexName string, id int, embedding embedding.Embedding) error {
 	if r.exists(indexName) {
 		// Load existing index and add the new vector
 		index, err := r.load(indexName)
@@ -62,7 +62,7 @@ func (r *Client) Index(ctx context.Context, indexName string, id int, embedding 
 	return nil
 }
 
-func (r *Client) Search(ctx context.Context, indexName string, query embedding.Embedding, topK int) (FaissSearchResponse, error) {
+func (r *FaissClient) Search(ctx context.Context, indexName string, query embedding.Embedding, topK int) (FaissSearchResponse, error) {
 	exists := r.exists(indexName)
 	if !exists {
 		return FaissSearchResponse{}, ErrFaissIndexDoesNotExist
@@ -83,7 +83,7 @@ func (r *Client) Search(ctx context.Context, indexName string, query embedding.E
 	}, nil
 }
 
-func (r *Client) exists(indexName string) bool {
+func (r *FaissClient) exists(indexName string) bool {
 	path := filepath.Join(r.dir, indexName)
 	_, err := os.Stat(path)
 	if err == nil {
@@ -95,7 +95,7 @@ func (r *Client) exists(indexName string) bool {
 	return false
 }
 
-func (r *Client) write(index *faiss.IndexImpl, indexName string) error {
+func (r *FaissClient) write(index *faiss.IndexImpl, indexName string) error {
 	indexPath := filepath.Join(r.dir, indexName+".index")
 	err := faiss.WriteIndex(index, indexPath)
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *Client) write(index *faiss.IndexImpl, indexName string) error {
 	return nil
 }
 
-func (r *Client) load(indexName string) (*faiss.IndexImpl, error) {
+func (r *FaissClient) load(indexName string) (*faiss.IndexImpl, error) {
 	exists := r.exists(indexName)
 	if !exists {
 		return nil, fmt.Errorf("index %s does not exist", indexName)

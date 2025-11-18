@@ -2,31 +2,39 @@ package cache
 
 import (
 	"context"
-	"memory/internal/persistence"
 )
 
-type MemoryCacheInterface interface {
-	Set(ctx context.Context, conversationID string, query string, response string) error
-	Get(ctx context.Context, conversationID string, lastK int) ([]persistence.CacheMemory, error)
+type MemoryRepoInterface interface {
+	SetOne(ctx context.Context, conversationID string, query string, response string) error
+	SetMany(ctx context.Context, conversationID string, memories []Memory) error
+	Get(ctx context.Context, conversationID string, lastK int) ([]Memory, error)
+	Len(ctx context.Context, convesationID string) (int, error)
 }
 
-type MemoryCache struct {
-	size     int
-	memories map[string][]persistence.CacheMemory
+type MemoryRepo struct {
+	memories map[string][]Memory
 }
 
-func NewMemoryCache(size int) MemoryCacheInterface {
-	return &MemoryCache{
-		size:     size,
-		memories: make(map[string][]persistence.CacheMemory),
+func NewMemoryRepo(size int) MemoryRepoInterface {
+	return &MemoryRepo{
+		memories: make(map[string][]Memory),
 	}
 }
 
-func (r *MemoryCache) Set(ctx context.Context, conversationID string, query string, response string) error {
+func (r *MemoryRepo) SetOne(ctx context.Context, conversationID string, query string, response string) error {
 	// if len > size, remove oldest
 	return nil
 }
 
-func (r *MemoryCache) Get(ctx context.Context, conversationID string, lastK int) ([]persistence.CacheMemory, error) {
+func (r *MemoryRepo) SetMany(ctx context.Context, conversationID string, memories []Memory) error {
+	// if len > size, remove oldest
+	return nil
+}
+
+func (r *MemoryRepo) Get(ctx context.Context, conversationID string, lastK int) ([]Memory, error) {
 	return nil, nil
+}
+
+func (r *MemoryRepo) Len(ctx context.Context, convesationID string) (int, error) {
+	return 0, nil
 }

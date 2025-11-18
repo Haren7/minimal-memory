@@ -1,31 +1,31 @@
 package persistence
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
 type RdbmsConversation struct {
-	ID        string    `db:"id"`
+	ID        int       `db:"id"`
 	UUID      uuid.UUID `db:"uuid"`
 	Agent     string    `db:"agent"`
 	User      string    `db:"user"`
-	CreatedAt string    `db:"created_at"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type RdbmsMemory struct {
-	ID             string    `db:"id"`
+	ID             int       `db:"id"`
 	UUID           uuid.UUID `db:"uuid"`
-	ConversationID string    `db:"conversation_id"`
+	ConversationID uuid.UUID `db:"conversation_id"`
 	Query          string    `db:"query"`
 	Response       string    `db:"response"`
+	CreatedAt      time.Time `db:"created_at"`
 }
 
 type VectorMemory struct {
-	ID int
-}
-
-type CacheMemory struct {
+	UUID      uuid.UUID
 	Query     string
 	Response  string
-	CreatedAt string
+	CreatedAt time.Time
 }

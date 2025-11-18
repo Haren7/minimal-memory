@@ -10,7 +10,7 @@ type ConversationRepo struct {
 	db *sql.DB
 }
 
-func NewSqliteConversationRepo(db *sql.DB) persistence.RdbmsConversationRepo {
+func NewConversationRepo(db *sql.DB) persistence.RdbmsConversationRepoInterface {
 	return &ConversationRepo{db}
 }
 
