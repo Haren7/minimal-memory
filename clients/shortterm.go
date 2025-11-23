@@ -21,13 +21,13 @@ type shortTermMemoryClient struct {
 }
 
 func NewShortTermMemoryClient(config ShortTermMemoryClientConfig) (ShortTermMemoryClient, error) {
-	db, err := rdbms.NewDuckDB()
+	duckdbClient, err := rdbms.NewDuckDBClient()
 	if err != nil {
 		log.Printf("[ERROR] NewShortTermMemoryClient: Failed to connect to DuckDB - %v", err)
 		return nil, err
 	}
 	memoryRepo := cache.NewInMemMemoryRepo()
-	conversationRepo := rdbms.NewConversationRepo(db)
+	conversationRepo := rdbms.NewConversationRepo(duckdbClient.GetDB())
 	conversationService := conversation.NewConversationService(conversationRepo)
 	summarizerService := summarizer.NewNoOpService()
 	memoryService := memory.NewCachedService(memoryRepo, summarizerService)

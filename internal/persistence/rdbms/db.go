@@ -2,11 +2,19 @@ package rdbms
 
 import (
 	"database/sql"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 
 	_ "github.com/duckdb/duckdb-go/v2"
 )
 
-func NewDuckDB() (*sql.DB, error) {
+type DuckDBClient struct {
+	db *sql.DB
+}
+
+func NewDuckDBClient() (*DuckDBClient, error) {
 	db, err := sql.Open("duckdb", "memory.db")
 	if err != nil {
 		return nil, err
@@ -27,7 +35,99 @@ func NewDuckDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return &DuckDBClient{db: db}, nil
+
+}
+
+func (r *DuckDBClient) GetDB() *sql.DB {
+	return r.db
+}
+
+func (r *DuckDBClient) Mount(dir string, files map[string]io.Reader) error {
+	for fileName, reader := range files {
+		if fileName == "memory.parquet" {
+			// write the reader to the file memory.parquet inside dir
+			bytes, err := io.ReadAll(reader)
+			if err != nil {
+				return fmt.Errorf("error reading file %s: %w", fileName, err)
+			}
+			err = os.WriteFile(filepath.Join(dir, "memory.parquet"), bytes, 0644)
+			if err != nil {
+				return fmt.Errorf("error writing file %s: %w", fileName, err)
+			}
+			// now use the sql command of duckdb to copy to the table memories
+			_, err = r.db.Exec(fmt.Sprintf("COPY memories FROM '%s' (FORMAT PARQUET)", filepath.Join(dir, "memory.parquet")))
+			if err != nil {
+				return fmt.Errorf("error copying file %s: %w", fileName, err)
+			}
+		} else if fileName == "conversations.parquet" {
+			// write the reader to the file conversations.parquet inside dir
+			bytes, err := io.ReadAll(reader)
+			if err != nil {
+				return fmt.Errorf("error reading file %s: %w", fileName, err)
+			}
+			err = os.WriteFile(filepath.Join(dir, "conversations.parquet"), bytes, 0644)
+			if err != nil {
+				return fmt.Errorf("error writing file %s: %w", fileName, err)
+			}
+			// now use the sql command of duckdb to copy to the table conversations
+			_, err = r.db.Exec(fmt.Sprintf("COPY conversations FROM '%s' (FORMAT PARQUET)", filepath.Join(dir, "conversations.parquet")))
+			if err != nil {
+				return fmt.Errorf("error copying file %s: %w", fileName, err)
+			}
+		} else if fileName == "memories_meta.parquet" {
+			// write the reader to the file memories_meta.parquet inside dir
+			bytes, err := io.ReadAll(reader)
+			if err != nil {
+				return fmt.Errorf("error reading file %s: %w", fileName, err)
+			}
+			err = os.WriteFile(filepath.Join(dir, "memories_meta.parquet"), bytes, 0644)
+			if err != nil {
+				return fmt.Errorf("error writing file %s: %w", fileName, err)
+			}
+			// now use the sql command of duckdb to copy to the table memories_meta
+			_, err = r.db.Exec(fmt.Sprintf("COPY memories_meta FROM '%s' (FORMAT PARQUET)", filepath.Join(dir, "memories_meta.parquet")))
+			if err != nil {
+				return fmt.Errorf("error copying file %s: %w", fileName, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (r *DuckDBClient) Export(dir string) ([]os.File, error) {
+	var files []os.File
+	memoryPath := filepath.Join(dir, "memory.parquet")
+	conversationsPath := filepath.Join(dir, "conversations.parquet")
+	memoriesMetaPath := filepath.Join(dir, "memories_meta.parquet")
+	_, err := r.db.Exec(fmt.Sprintf("COPY (SELECT * FROM memories) TO '%s' (FORMAT PARQUET)", memoryPath))
+	if err != nil {
+		return nil, err
+	}
+	memoryFile, err := os.Open(memoryPath)
+	if err != nil {
+		return nil, err
+	}
+	files = append(files, *memoryFile)
+	_, err = r.db.Exec(fmt.Sprintf("COPY (SELECT * FROM conversations) TO '%s' (FORMAT PARQUET)", conversationsPath))
+	if err != nil {
+		return nil, err
+	}
+	conversationsFile, err := os.Open(conversationsPath)
+	if err != nil {
+		return nil, err
+	}
+	files = append(files, *conversationsFile)
+	_, err = r.db.Exec(fmt.Sprintf("COPY (SELECT * FROM memories_meta) TO '%s' (FORMAT PARQUET)", memoriesMetaPath))
+	if err != nil {
+		return nil, err
+	}
+	memoriesMetaFile, err := os.Open(memoriesMetaPath)
+	if err != nil {
+		return nil, err
+	}
+	files = append(files, *memoriesMetaFile)
+	return files, nil
 }
 
 func createSequences(db *sql.DB) error {

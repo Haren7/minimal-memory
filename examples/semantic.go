@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"memory/types"
 )
 
-func ExampleSemanticMemory() {
+func exampleSemanticMemory() {
 	ctx := context.Background()
 	semanticMemoryClient, err := clients.NewSemanticMemoryClient(clients.SemanticMemoryClientConfig{
 		ContextWindowSize: 10,

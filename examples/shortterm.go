@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"memory/types"
 )
 
-func ExampleShortTermMemory() {
+func exampleShortTermMemory() {
 	ctx := context.Background()
 	shortTermMemoryClient, err := clients.NewShortTermMemoryClient(clients.ShortTermMemoryClientConfig{})
 	if err != nil {

@@ -28,15 +28,15 @@ func NewSemanticMemoryClient(config SemanticMemoryClientConfig) (SemanticMemoryC
 	}
 	embeddingService := embedding.NewOpenAIService(config.OpenAIApiKey)
 	summarizerService := summarizer.NewNoOpService()
-	db, err := rdbms.NewDuckDB()
+	duckdbClient, err := rdbms.NewDuckDBClient()
 	if err != nil {
 		log.Printf("[ERROR] NewSemanticMemoryClient: Failed to connect to DuckDB - %v", err)
 		return nil, fmt.Errorf("error connecting to duckdb")
 	}
-	conversationRepo := rdbms.NewConversationRepo(db)
+	conversationRepo := rdbms.NewConversationRepo(duckdbClient.GetDB())
 	conversationService := conversation.NewConversationService(conversationRepo)
-	memoryRepo := rdbms.NewMemoryRepo(db)
-	faissMemoryRepo := rdbms.NewFaissMemoryRepo(db)
+	memoryRepo := rdbms.NewMemoryRepo(duckdbClient.GetDB())
+	faissMemoryRepo := rdbms.NewFaissMemoryRepo(duckdbClient.GetDB())
 	// chromemDB := vector.NewChromem()
 	// vectorMemoryRepo := vector.NewChromemMemoryRepo(chromemDB, embeddingService)
 	faiss := vector.NewFaissClient()
