@@ -89,10 +89,10 @@ func (r *MemoryRepo) FetchManyByConversationID(ctx context.Context, conversation
 }
 
 func (r *MemoryRepo) InsertOne(ctx context.Context, conversationID uuid.UUID, memoryID uuid.UUID, query string, response string, createdAt time.Time) (int, error) {
-	result, err := r.db.ExecContext(ctx, fmt.Sprintf(`INSERT INTO %s (conversation_id, uuid, query, response, created_at) VALUES ($1, $2, $3, $4, $5)`, r.tableName), conversationID, memoryID, query, response, createdAt)
+	var insertedID int
+	err := r.db.QueryRowContext(ctx, fmt.Sprintf(`INSERT INTO %s (conversation_id, uuid, query, response, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`, r.tableName), conversationID, memoryID, query, response, createdAt).Scan(&insertedID)
 	if err != nil {
 		return 0, fmt.Errorf("repo: error inserting memory, %w", err)
 	}
-	lastInsertId, _ := result.LastInsertId()
-	return int(lastInsertId), nil
+	return insertedID, nil
 }

@@ -49,6 +49,7 @@ func ExampleSemanticMemory() {
 	memories := retrieveSemanticMemoryOutput.Memories
 	similarMemories := retrieveSemanticMemoryOutput.SimilarMemories
 	for _, memory := range memories {
+		fmt.Println("memories:")
 		fmt.Println("memory id: ", memory.ID)
 		fmt.Println("memory query: ", memory.Query)
 		fmt.Println("memory response: ", memory.Response)
@@ -56,6 +57,7 @@ func ExampleSemanticMemory() {
 		fmt.Println("--------------------------------")
 	}
 	for _, memory := range similarMemories {
+		fmt.Println("similar memories:")
 		fmt.Println("memory id: ", memory.ID)
 		fmt.Println("memory query: ", memory.Query)
 		fmt.Println("memory response: ", memory.Response)

@@ -52,7 +52,7 @@ func (r *FaissMemoryRepo) Search(ctx context.Context, conversationID uuid.UUID, 
 	}
 	faissResponse, err := r.faissClient.Search(ctx, conversationID.String(), embedding, topK)
 	var memoryIds []int
-	for _, id := range faissResponse.Labels {
+	for _, id := range faissResponse.Ids {
 		memoryIds = append(memoryIds, int(id))
 	}
 	rdbmsMemories, err := r.rdbmsMemoryRepo.FetchMany(ctx, memoryIds)

@@ -18,7 +18,7 @@ var ErrindexDoesNotExist = errors.New("faiss index does not exist")
 
 type FaissSearchResponse struct {
 	Distances []float32
-	Labels    []int64
+	Ids       []int64
 }
 
 type FaissClient struct {
@@ -35,12 +35,12 @@ func NewFaissClient() *FaissClient {
 func (r *FaissClient) Index(ctx context.Context, conversationID string, id int, embedding embedding.Embedding) error {
 	index, exists := r.conversationIDVsIndex[conversationID]
 	if !exists {
-		var err error
-		index, err = faiss.IndexFactory(embedding.Dim, "IDMap,Flat", 1)
+		newIndex, err := faiss.IndexFactory(embedding.Dim, "IDMap,Flat", 1)
 		if err != nil {
 			return fmt.Errorf("error creating idmap + flat index with dim %d - %w", embedding.Dim, err)
 		}
-		r.conversationIDVsIndex[conversationID] = index
+		r.conversationIDVsIndex[conversationID] = newIndex
+		index = newIndex
 	}
 	err := index.AddWithIDs(embedding.Vector, []int64{int64(id)})
 	if err != nil {
@@ -58,9 +58,15 @@ func (r *FaissClient) Search(ctx context.Context, conversationID string, query e
 	if err != nil {
 		return FaissSearchResponse{}, fmt.Errorf("error searching index: %w", err)
 	}
+	var validIds []int64
+	for _, label := range labels {
+		if label != -1 {
+			validIds = append(validIds, label)
+		}
+	}
 	return FaissSearchResponse{
 		Distances: distances,
-		Labels:    labels,
+		Ids:       validIds,
 	}, nil
 }
 

@@ -34,10 +34,10 @@ func (r *ConversationRepo) FetchOne(ctx context.Context, conversationID uuid.UUI
 }
 
 func (r *ConversationRepo) InsertOne(ctx context.Context, agent string, user string, conversationID uuid.UUID, createdAt time.Time) (int, error) {
-	result, err := r.db.ExecContext(ctx, "INSERT INTO conversations (uuid, agent, user, created_at) VALUES ($1, $2, $3, $4)", conversationID, agent, user, createdAt)
+	var insertedID int
+	err := r.db.QueryRowContext(ctx, "INSERT INTO conversations (uuid, agent, user, created_at) VALUES ($1, $2, $3, $4) RETURNING id", conversationID, agent, user, createdAt).Scan(&insertedID)
 	if err != nil {
 		return 0, fmt.Errorf("repo: error inserting conversation, %w", err)
 	}
-	lastInsertId, _ := result.LastInsertId()
-	return int(lastInsertId), nil
+	return insertedID, nil
 }

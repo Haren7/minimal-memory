@@ -133,6 +133,7 @@ func (r *DuckDBClient) Export(dir string) ([]os.File, error) {
 func createSequences(db *sql.DB) error {
 	queries := []string{
 		"CREATE SEQUENCE IF NOT EXISTS memories_id_seq START 1",
+		"CREATE SEQUENCE IF NOT EXISTS memories_meta_id_seq START 1",
 		"CREATE SEQUENCE IF NOT EXISTS conversations_id_seq START 1",
 	}
 	for _, query := range queries {
@@ -165,7 +166,7 @@ func createMemoryTable(db *sql.DB) error {
 func createMemoryMetaTable(db *sql.DB) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS memories_meta (
-			id INTEGER PRIMARY KEY DEFAULT nextval('memories_id_seq'),
+			id INTEGER PRIMARY KEY DEFAULT nextval('memories_meta_id_seq'),
 			uuid UUID NOT NULL,
 			conversation_id UUID NOT NULL,
 			query TEXT NOT NULL,
