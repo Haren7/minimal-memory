@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/haren7/minimal-memory/internal/embedding"
-
 	"github.com/DataIntelligenceCrew/go-faiss"
+	_ "github.com/NerdMeNot/faiss-go-bindings"
+	"github.com/haren7/minimal-memory/internal/embedding"
 )
 
 var ErrindexDoesNotExist = errors.New("faiss index does not exist")
